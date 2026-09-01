@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Rozvrhář v12</title>
-<link rel="stylesheet" href="styles.css?v=20260901-12">
+<title>Rozvrhář v13</title>
+<link rel="stylesheet" href="styles.css?v=20260901-13">
 </head>
 <body>
 <div class="app">
@@ -12,7 +12,7 @@
     <button id="sidebarClose" aria-label="Zavřít nastavení" style="position:absolute;right:10px;top:10px;border:0;background:rgba(255,255,255,.14);color:white;width:34px;height:34px;border-radius:50%;font-weight:900;font-size:20px">×</button>
     <div class="brand">✏️ Rozvrhář</div>
     <div class="small">Jednosouborová HTML aplikace na tvoření hravých rozvrhů ve stylu školního plakátu. Vše se ukládá do tohoto prohlížeče.</div>
-    <div class="small" style="margin-top:4px;opacity:.65">verze 12</div>
+    <div class="small" style="margin-top:4px;opacity:.65">verze 13</div>
 
     <div class="side-section">
       <h3>Soubor</h3>
@@ -104,7 +104,7 @@
       <div class="field">
         <label class="toggle-row" style="display:flex;gap:8px;align-items:flex-start">
           <input id="lockCellRatio" type="checkbox" style="width:auto;margin-top:2px">
-          <span><b>🔒 Zamknout poměr políček</b><br><span class="small" style="opacity:.9">Rozvrh se zvětšuje a zmenšuje jako jeden celek. Velikosti chlívečků se nemění.</span></span>
+          <span><b>🔒 Zamknout rozložení chlívečků</b><br><span class="small" style="opacity:.9">Zachová výchozí výšku řádků a šířku sloupců. Větší text ani více objektů už chlíveček neroztáhne.</span></span>
         </label>
       </div>
       <div class="field"><label>Styl pozadí</label><select id="bgSelect"><option value="paper">Papír + puntíky</option><option value="clean">Čistý</option><option value="gridpaper">Čtverečkovaný</option></select></div>
@@ -137,8 +137,8 @@
 <div class="notice" id="notice"></div>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
-<script src="app-core.js?v=20260901-12"></script>
-<script src="app-data.js?v=20260901-12"></script>
-<script src="app-actions.js?v=20260901-12"></script>
+<script src="app-core.js?v=20260901-13"></script>
+<script src="app-data.js?v=20260901-13"></script>
+<script src="app-actions.js?v=20260901-13"></script>
 </body>
 </html>
