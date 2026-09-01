@@ -86,43 +86,12 @@ $("#importConfirm").onclick=()=>{
     alert("JSON se nepodařilo načíst. Pokud je to starší formát, pošli mi ho a doplním přesný převod.");
   }
 };
-$("#csvBtn").onclick=()=>{$("#csvText").value="";$("#csvDialog").showModal()};
-$("#csvConfirm").onclick=()=>{
-  const cells=parseCSV($("#csvText").value);
-  state.cells=cells;saveState();render();$("#csvDialog").close();toast("CSV načteno");
-};
-$("#printBtn").onclick=async()=>{
-  const win=window.open("","_blank");
-  if(!win){
-    alert("Prohlížeč zablokoval tiskové okno. Povol vyskakovací okna nebo použij tlačítko PDF.");
-    return;
-  }
 
-  win.document.write(`
-    <!doctype html><html><head><meta charset="utf-8"><title>Rozvrh – tisk</title>
-    <style>
-      @page{size:${state.printSize||"A3"} landscape;margin:5mm}
-      html,body{margin:0;padding:0;width:100%;height:100%;background:white}
-      body{display:flex;align-items:center;justify-content:center}
-      img{display:block;max-width:100%;max-height:100vh;width:auto;height:auto;object-fit:contain}
-      .msg{font-family:Arial,sans-serif;padding:20px}
-      @media print{html,body{width:100%;height:100%}img{width:100%;height:100%;max-width:none;max-height:none;object-fit:contain}}
-    </style></head><body><div class="msg">Připravuji celý rozvrh…</div></body></html>
-  `);
-  win.document.close();
-
-  try{
-    const canvas=await capturePoster(2);
-    const img=canvas.toDataURL("image/jpeg",0.97);
-    win.document.body.innerHTML=`<img src="${img}" alt="Rozvrh">`;
-    const im=win.document.querySelector("img");
-    await new Promise(resolve=>{ if(im.complete) resolve(); else im.onload=resolve; });
-    setTimeout(()=>{ win.focus(); win.print(); },150);
-  }catch(err){
-    console.error(err); win.close();
-    alert("Tisk se nepodařilo připravit. Použij prosím tlačítko PDF.");
-  }
-};
+// CSV a klasický tisk už nejsou součástí rozhraní. Původní elementy
+// odstraňujeme až po načtení stránky, takže starší HTML/cache aplikaci nerozbije.
+$("#csvBtn")?.remove();
+$("#printBtn")?.remove();
+$("#csvDialog")?.remove();
 
 $("#jpgBtn").onclick=async()=>{
   try{
@@ -178,3 +147,61 @@ requestAnimationFrame(()=>fitSchedule());
 window.addEventListener("load",()=>setTimeout(fitSchedule,80));
 if(document.fonts?.ready) document.fonts.ready.then(()=>fitSchedule());
 updatePasteButton();
+
+// --- Automatické roztažení + volitelný zámek poměru políček -----------------
+(function initResponsiveCellRatio(){
+  const STORAGE_KEY="rozvrhar_lock_cell_ratio";
+  let locked=localStorage.getItem(STORAGE_KEY)==="1";
+  const baseFitSchedule=fitSchedule;
+
+  function applyNaturalPosterWidth(){
+    const wrap=$("#stageWrap");
+    const poster=$("#poster");
+    if(!wrap || !poster) return;
+    const available=Math.max(320,wrap.clientWidth-12);
+
+    // Zamčeno = jednotlivé buňky mají stále stejnou návrhovou šířku.
+    // Celý plakát se pouze rovnoměrně zoomuje nahoru/dolů.
+    // Odemčeno = na širokém monitoru se přirozená šířka plakátu zvětší,
+    // a tím se rozšíří i jednotlivé buňky.
+    poster.style.width=(locked ? 1600 : Math.max(1600,available))+"px";
+  }
+
+  fitSchedule=function(){
+    applyNaturalPosterWidth();
+    baseFitSchedule();
+  };
+  window.fitSchedule=fitSchedule;
+
+  const bgField=$("#bgSelect")?.closest(".field");
+  if(bgField){
+    const field=document.createElement("div");
+    field.className="field";
+    field.innerHTML=`
+      <label class="toggle-row" style="display:flex;gap:8px;align-items:center">
+        <input id="lockRatioInput" type="checkbox" ${locked?"checked":""} style="width:auto">
+        <span>🔒 Zamknout poměr / velikost políček</span>
+      </label>
+      <div class="small" style="margin-top:5px">
+        Zapnuto: políčka nemění své rozměry a mění se jen měřítko celého rozvrhu. Vypnuto: rozvrh využije celou šířku okna a políčka se mohou roztáhnout.
+      </div>`;
+    bgField.insertAdjacentElement("afterend",field);
+
+    $("#lockRatioInput").addEventListener("change",e=>{
+      locked=e.target.checked;
+      localStorage.setItem(STORAGE_KEY,locked?"1":"0");
+      autoFit=true;
+      fitSchedule();
+      toast(locked?"Poměr políček zamknut":"Poměr políček odemknut");
+    });
+  }
+
+  window.addEventListener("resize",()=>{
+    applyNaturalPosterWidth();
+    if(autoFit) fitSchedule();
+    else setZoom(zoom);
+  });
+
+  // Přepočet po dokončení inicializace stránky.
+  requestAnimationFrame(()=>fitSchedule());
+})();
