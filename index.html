@@ -1,1 +1,258 @@
-Ahoj
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Rozvrhář v11 – chytré dvojice a trojice</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <button id="sidebarClose" aria-label="Zavřít nastavení"
+      style="position:absolute;right:10px;top:10px;border:0;background:rgba(255,255,255,.14);color:white;width:34px;height:34px;border-radius:50%;font-weight:900;font-size:20px">×</button>
+    <div class="brand">✏️ Rozvrhář</div>
+    <div class="small">Jednosouborová HTML aplikace na tvoření hravých rozvrhů ve stylu školního plakátu. Vše se ukládá do tohoto prohlížeče.</div>
+
+    <div class="side-section">
+      <h3>Soubor</h3>
+      <div class="toolbar">
+        <button class="btn primary" id="sampleBtn">✨ Ukázka</button>
+        <button class="btn" id="newBtn">🧹 Nový</button>
+        <button class="btn" id="exportBtn">⬇ JSON</button>
+        <button class="btn" id="importBtn">📂 Nahrát JSON</button>
+        <input id="jsonFileInput" type="file" accept=".json,application/json" hidden>
+        <button class="btn" id="csvBtn">📄 CSV</button>
+        <button class="btn" id="jpgBtn">🖼 JPG</button>
+        <button class="btn primary wide" id="pdfBtn">📄 PDF – celý rozvrh</button>
+        <button class="btn wide" id="printBtn">🖨 Tisk – celý rozvrh</button>
+      </div>
+      <div class="small" style="margin-top:8px">
+        JSON můžeš vybrat přímo jako soubor. Starý JSON import zůstává zachovaný.
+        JPG a nové PDF jsou vytvořené přímo jako snímek celého rozvrhu 1:1 – bez browserového lámání na stránky.
+      </div>
+    </div>
+
+    <div class="side-section">
+      <h3>Hlavička</h3>
+      <div class="field"><label>Název školy</label><input id="schoolInput"></div>
+      <div class="field"><label>Třída</label><input id="classInput"></div>
+      <div class="field"><label>Třídní učitel</label><input id="teacherInput"></div>
+      <div class="field"><label>Místnost</label><input id="roomInput"></div>
+      <div class="field"><label>Heslo / bublina</label><input id="mottoInput"></div>
+    </div>
+
+    <div class="side-section">
+      <h3>Časy hodin</h3>
+      <div id="periodEditors"></div>
+    </div>
+
+    <div class="side-section">
+      <h3>Emoji dnů</h3>
+      <div class="day-emoji-editors" id="dayEmojiEditors"></div>
+      <div class="small" style="margin-top:7px">Změna se projeví okamžitě u daného dne.</div>
+    </div>
+
+    <div class="side-section">
+      <h3>Legenda učitelů</h3>
+      <div id="teacherNameEditors"></div>
+      <div class="small" style="margin-top:7px">Zkratky se doplňují automaticky z rozvrhu. K nim můžeš dopsat celé jméno.</div>
+    </div>
+
+    <div class="side-section">
+      <h3>Vzhled obsahu políček</h3>
+      <div class="field">
+        <label>Pro jaké políčko</label>
+        <select id="styleScope">
+          <option value="single">1 objekt</option>
+          <option value="double">2 objekty</option>
+          <option value="triple">3 a více objektů</option>
+        </select>
+      </div>
+      <div class="field" id="densityAutoField" style="display:none">
+        <label class="toggle-row">
+          <input id="densityAuto" type="checkbox" checked>
+          <span>Automaticky zmenšit a uspořádat</span>
+        </label>
+        <div class="small" style="margin-top:5px">Při automatice se velikosti i posuny odvozují od nastavení běžného políčka. Když automatiku vypneš, upravuješ zvlášť jen dvojice nebo trojice.</div>
+      </div>
+      <div class="field">
+        <label>Co právě upravuji</label>
+        <select id="styleTarget">
+          <option value="subject">Název předmětu</option>
+          <option value="icon">Ikona / emoji / vlajka</option>
+          <option value="group">Skupina</option>
+          <option value="room">Učebna / třída</option>
+          <option value="teacher">Zkratka učitele</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Font</label>
+        <select id="styleFont">
+          <option value="Segoe Print">Ručně psaný – Segoe Print</option>
+          <option value="Segoe UI">Segoe UI</option>
+          <option value="Arial">Arial</option>
+          <option value="Verdana">Verdana</option>
+          <option value="Trebuchet MS">Trebuchet MS</option>
+          <option value="Georgia">Georgia</option>
+          <option value="Courier New">Courier New</option>
+          <option value="Comic Sans MS">Comic Sans MS</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Velikost písma / ikony</label>
+        <div class="range-row">
+          <input id="styleSizeRange" type="range" min="6" max="56" step="1">
+          <input id="styleSize" type="number" min="6" max="80" step="1">
+        </div>
+      </div>
+      <div class="field">
+        <label>Posun vodorovně (X)</label>
+        <div class="range-row">
+          <input id="styleXRange" type="range" min="-50" max="50" step="1">
+          <input id="styleX" type="number" min="-100" max="100" step="1">
+        </div>
+      </div>
+      <div class="field">
+        <label>Posun svisle (Y)</label>
+        <div class="range-row">
+          <input id="styleYRange" type="range" min="-50" max="50" step="1">
+          <input id="styleY" type="number" min="-100" max="100" step="1">
+        </div>
+      </div>
+      <div class="field">
+        <label class="toggle-row">
+          <input id="moveMode" type="checkbox">
+          <span>🖐 Přesouvat přímo v rozvrhu</span>
+        </label>
+      </div>
+      <div class="toolbar">
+        <button class="btn wide" id="resetStyleBtn">↺ Vrátit tento prvek</button>
+      </div>
+      <div class="style-global-note">
+        V rámci zvoleného typu je vše <b>globální</b>: změna u jedné dvojice se projeví u všech dvojic, změna u trojice u všech trojic. Dvojice a trojice se ve výchozím stavu zmenšují automaticky.
+      </div>
+    </div>
+
+    <div class="side-section">
+      <h3>Vzhled</h3>
+      <div class="field">
+        <label>Styl pozadí</label>
+        <select id="bgSelect">
+          <option value="paper">Papír + puntíky</option>
+          <option value="clean">Čistý</option>
+          <option value="gridpaper">Čtverečkovaný</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Velikost tisku</label>
+        <select id="printSelect">
+          <option value="A3">A3 na šířku</option>
+          <option value="A4">A4 na šířku</option>
+        </select>
+      </div>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="topbar">
+      <div style="display:flex;gap:8px;align-items:center;min-width:0">
+        <button class="btn" id="settingsBtn" style="white-space:nowrap">⚙ Nastavení</button>
+        <div class="hint">Klikni na libovolné políčko rozvrhu a přidej jednu nebo více skupin. Změny se ukládají automaticky.</div>
+      </div>
+      <div class="zoom">
+        <button id="fitBtn" title="Zobrazit celý rozvrh">↔ Celý rozvrh</button>
+        <button id="zoomOut">−</button>
+        <span id="zoomLabel">75 %</span>
+        <button id="zoomIn">+</button>
+      </div>
+    </div>
+    <div class="stage-wrap" id="stageWrap">
+      <div class="stage-scale" id="stageScale">
+        <section class="poster" id="poster">
+          <header class="poster-head">
+            <div class="head-left">
+              <div class="ribbon">ROZVRH HODIN</div>
+              <div class="school-name" id="schoolText"></div>
+            </div>
+            <div class="class-code" id="classText"></div>
+            <div class="head-right">
+              <div class="motto" id="mottoText"></div>
+              <div class="meta">
+                <span>Třídní učitel: <b id="teacherText"></b></span>
+                <span id="roomText"></span>
+              </div>
+            </div>
+          </header>
+
+          <div class="layout">
+            <div class="timetable">
+              <div class="grid" id="grid"></div>
+            </div>
+            <aside class="legend">
+              <h3>LEGENDA PŘEDMĚTŮ</h3>
+              <div id="legendRows"></div>
+              <div class="legend-foot">* číslo = učebna, zkratka = vyučující</div>
+            </aside>
+          </div>
+
+          <div class="teacher-strip">
+            <div class="class-teacher-card">Třídní učitel:<b id="teacherCard"></b></div>
+            <div class="teachers" id="teacherStrip"></div>
+          </div>
+          <div class="footer-note">Rozvrh vytvořen v Rozvrháři • data zůstávají jen v zařízení</div>
+        </section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<aside class="drawer" id="drawer">
+  <button class="close" id="drawerClose">×</button>
+  <h2 id="drawerTitle">Úprava hodiny</h2>
+  <div class="small" style="color:#586b86;opacity:1">V jednom políčku může být více skupin – např. jazyky, TV nebo volitelné předměty.</div>
+  <div class="preset-grid" id="presetGrid"></div>
+  <div id="itemsEditor"></div>
+  <div class="toolbar" style="margin-top:10px">
+    <button class="btn" id="copyCell">📋 Kopírovat políčko</button>
+    <button class="btn" id="pasteCell">📌 Vložit políčko</button>
+    <button class="btn primary wide" id="addItem">＋ Přidat další skupinu</button>
+    <button class="btn danger wide" id="clearCell">Vymazat celé políčko</button>
+  </div>
+</aside>
+
+<dialog id="importDialog">
+  <div class="dialog-body">
+    <h2>Načíst JSON ručně</h2>
+    <div class="field"><textarea id="importText" placeholder="Sem můžeš vložit obsah staršího JSON exportu…"></textarea></div>
+    <div class="toolbar">
+      <button class="btn" onclick="importDialog.close()">Zrušit</button>
+      <button class="btn primary" id="importConfirm">Načíst</button>
+    </div>
+  </div>
+</dialog>
+
+<dialog id="csvDialog">
+  <div class="dialog-body">
+    <h2>Import z CSV</h2>
+    <div class="csvhelp">Sloupce: <b>Den;Hodina;Předmět;Učebna;Učitel;Skupina</b><br>
+      Příklad: <code>Po;1;ČJL;202;HEN;</code><br>
+      Pro více skupin ve stejné hodině použij více řádků se stejným dnem a hodinou.
+    </div>
+    <div class="field"><textarea id="csvText" placeholder="Po;1;ČJL;202;HEN;&#10;Po;2;ZEM;205;HOD;"></textarea></div>
+    <div class="toolbar">
+      <button class="btn" onclick="csvDialog.close()">Zrušit</button>
+      <button class="btn primary" id="csvConfirm">Načíst CSV</button>
+    </div>
+  </div>
+</dialog>
+
+<div class="notice" id="notice"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js"></script>
+<script src="app-core.js"></script>
+<script src="app-data.js"></script>
+<script src="app-actions.js"></script>
+</body>
+</html>
