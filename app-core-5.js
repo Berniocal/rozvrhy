@@ -4,12 +4,24 @@ async function capturePoster(scale=2){
   }
 
   const poster=$("#poster");
+
+  // Zachováme skutečnou aktuální šířku plakátu. Pokud se na širokém monitoru
+  // rozvrh roztáhl např. z 1600 na 1900 px, stejných 1900 px použije i tisk,
+  // JPG a PDF. Export už tedy nespadne zpět na původní pevnou šířku 1600 px.
+  const naturalWidth=Math.ceil(
+    Math.max(
+      poster?.offsetWidth || 0,
+      parseFloat(getComputedStyle(poster).width) || 0,
+      1600
+    )
+  );
+
   const holder=document.createElement("div");
   holder.style.cssText=[
     "position:fixed",
     "left:-100000px",
     "top:0",
-    "width:1600px",
+    `width:${naturalWidth}px`,
     "height:auto",
     "overflow:visible",
     "background:#fffdf8",
@@ -19,7 +31,7 @@ async function capturePoster(scale=2){
   const clone=poster.cloneNode(true);
   clone.removeAttribute("id");
   clone.style.transform="none";
-  clone.style.width="1600px";
+  clone.style.width=naturalWidth+"px";
   clone.style.height="auto";
   clone.style.minHeight="0";
   clone.style.maxHeight="none";
@@ -35,7 +47,7 @@ async function capturePoster(scale=2){
   }
 
   const rect=clone.getBoundingClientRect();
-  const width=Math.ceil(Math.max(rect.width, clone.scrollWidth, 1600));
+  const width=Math.ceil(Math.max(rect.width, clone.scrollWidth, naturalWidth));
   const height=Math.ceil(Math.max(rect.height, clone.scrollHeight));
 
   const canvas=await html2canvas(clone,{
@@ -80,4 +92,3 @@ function updatePasteButton(){
   b.disabled = !copiedCell || !copiedCell.length;
   b.style.opacity = b.disabled ? ".45" : "1";
 }
-
