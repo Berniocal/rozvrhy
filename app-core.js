@@ -3,6 +3,7 @@ document.write('<script src="app-core-2.js"><\/script>');
 document.write('<script src="app-core-3.js"><\/script>');
 document.write('<script src="app-core-4.js"><\/script>');
 document.write('<script src="app-core-5.js"><\/script>');
+document.write('<script src="responsive-width.js"><\/script>');
 
 // Tyto dvě pomocné funkce v rozdělené GitHub verzi chyběly.
 // Bez syncHeaderInputs() se inicializace zastavila ještě před render(),
